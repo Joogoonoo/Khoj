@@ -96,4 +96,4 @@ export const searchApi = {
       console.error("Suggestions API error:", error);
       return { suggestions: [] };
     }
-  }
+  };
