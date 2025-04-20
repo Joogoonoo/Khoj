@@ -1,0 +1,157 @@
+<!DOCTYPE  html>
+<html lang="hi">
+  <head>
+    <script type="module">
+import RefreshRuntime from "/@react-refresh"
+RefreshRuntime.injectIntoGlobalHook(window)
+window.$RefreshReg$ = () => {}
+window.$RefreshSig$ = () => (type) => type
+window.__vite_plugin_react_preamble_installed__ = true
+</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="description" content="एक गूगल जैसा खोज इंजन हिंदी में, पूर्ण स्टैक वेब क्रॉलिंग और इंडेक्सिंग क्षमताओं के साथ" />
+    <meta property="og:title" content="खोज - गूगल जैसा खोज इंजन (Full Stack)" />
+    <meta property="og:description" content="एक पूर्ण स्टैक गूगल जैसा खोज इंजन हिंदी में, वेब क्रॉलिंग और इंडेक्सिंग क्षमताओं के साथ" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1511296265581-c2450046447d?ixid=M3w3MjUzNDh8MHwxfHNlYXJjaHwxfHxoaW5kaSUyMHNlYXJjaCUyMGVuZ2luZSUyMGdvb2dsZSUyMGludGVyZmFjZXxlbnwwfHx8fDE3NDMzMjA2NzB8MA" />
+    <title>खोज - गूगल जैसा खोज इंजन (Full Stack)</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+ <script>
+    const originalConsole = {
+      error: console.error,
+    }
+    function captureConsoleMessage(type, ...args) {
+      originalConsole[type](type.toUpperCase() + ':', ...args)
+      window.parent.postMessage({
+        type: 'error',
+        message: args[0] || 'Some error occurred',
+        error: args[0] || '',
+        stack: args[1] || '',
+      }, '*')
+    }
+    console.error = (...args) => captureConsoleMessage('error', ...args)
+
+    window.onerror = function(msg, url, line, col, error) {
+      window.parent.postMessage({
+        type: 'error',
+        message: msg,
+        location: {
+          url: url,
+          line: line,
+          col: col
+        },
+        error: error?.toString(),
+        stack: error?.stack || ''
+      }, '*');
+      return false;
+    };
+
+    window.addEventListener('info', function(event) {
+      window.parent.postMessage({
+        type: 'info',
+        message: event.info?.message || event.message,
+      }, '*');
+    });
+
+    window.addEventListener('error', function(event) {
+      window.parent.postMessage({
+        type: 'error',
+        message: event.error?.message || event.message,
+        location: {
+          url: event.filename || '',
+          line: event.lineno || 0,
+          col: event.colno || 0
+        },
+        error: event.error?.toString() || event.message,
+        stack: event.error?.stack || ''
+      }, '*');
+    });
+
+    window.addEventListener('unhandledrejection', function(event) {
+      window.parent.postMessage({
+        type: 'error',
+        message: event.reason?.message || event.reason,
+        error: event.reason?.toString() || '',
+        stack: event.reason?.stack || ''
+      }, '*');
+    });
+
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "ping") {
+        window.parent.postMessage({ type: "pong" }, "*");
+      }
+      if(event.data.type === 'snapshot'){
+        try {
+          const extractedCss = Array.from(document.styleSheets)
+            .filter(sheet => !sheet.href || sheet.href.startsWith(window.location.origin)) // Only allow same-origin stylesheets
+            .map(sheet => {
+              try {
+                return Array.from(sheet.cssRules)
+                  .map(rule => rule.cssText)
+                  .join(" ");
+              } catch (e) {
+                return "";
+              }
+            })
+            .join(" ");
+
+          // Send snapshot data to parent
+          window.parent.postMessage(
+            {
+              type: "snapshotHtml",
+              html: document.documentElement.outerHTML,
+              css: extractedCss,
+            },
+            "*"
+          );
+        } catch {
+        }
+      }
+    });
+
+    const observer = new MutationObserver(() => {
+      const errorOverlay = document.querySelector('vite-error-overlay');
+      if (errorOverlay?.shadowRoot) {
+        const messageElement = errorOverlay.shadowRoot.querySelector('.message');
+        if(messageElement){
+          const errorMessage = messageElement.innerText || messageElement.textContent;
+          if(errorMessage.length){
+            window.parent.postMessage({
+              type: 'error',
+              message: errorMessage,
+            }, '*');
+          }
+        }
+      }
+
+      const divs = document.querySelectorAll('body div');
+      let contentLoaded = false;
+      divs.forEach(div => {
+        if (div.innerHTML.trim().length > 0) {
+          contentLoaded = true;
+        }
+      });
+      if (contentLoaded) {
+        window.parent.postMessage({
+          type: 'info',
+          message: 'Iframe loaded successfully',
+        }, '*');
+      } else {
+        window.parent.postMessage({
+          type: 'info',
+          message: 'Iframe has no content as of now',
+        }, '*');
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  </script>
