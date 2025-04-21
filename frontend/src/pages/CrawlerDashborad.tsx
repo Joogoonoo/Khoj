@@ -384,4 +384,5 @@ if (import.meta.hot && !inWebWorker) {
       if (invalidateMessage)
         import.meta.hot.invalidate(invalidateMessage);
     });
-  })
+  });
+}
